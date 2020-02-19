@@ -22,14 +22,11 @@ def create_budget():
     month = request.form['month']
     budget = request.form['budget']
     with sqlite3.connect("budget.db") as con:
-        c = con.cursor()
-        c.execute(f"select count(*) from budget  where year = '{year}' and month='{month}'")
-        count = c.fetchone()[0]
-        if count == 0:
-            c.execute(f"INSERT INTO budget VALUES ({year},{month}, {budget})")
+        if check_data_exist(con, year, month):
+            insert_data(con, year, month, budget)
         else:
-            c.execute(f"UPDATE budget SET BUDGET = '{budget}' WHERE year = '{year}' and month='{month}'")
-        con.commit()
+            update_data(con, year, month, budget)
+
     return '''
     <form method="POST" action="/budget">
         Year <input type="text" name="year">
@@ -39,6 +36,28 @@ def create_budget():
     </form>
     SUCCESS!!
     '''
+
+
+def check_data_exist(con, year, month):
+    c = con.cursor()
+    c.execute(f"select count(*) from budget  where year = '{year}' and month='{month}'")
+    count = c.fetchone()[0]
+    if count == 0:
+        return True
+    else:
+        return False
+
+
+def insert_data(con, year, month, budget):
+    c = con.cursor()
+    c.execute(f"INSERT INTO budget VALUES ({year},{month}, {budget})")
+    con.commit()
+
+
+def update_data(con, year, month, budget):
+    c = con.cursor()
+    c.execute(f"UPDATE budget SET BUDGET = '{budget}' WHERE year = '{year}' and month='{month}'")
+    con.commit()
 
 
 if __name__ == '__main__':
