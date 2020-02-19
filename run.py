@@ -43,9 +43,9 @@ def check_data_exist(con, year, month):
     c.execute(f"select count(*) from budget  where year = '{year}' and month='{month}'")
     count = c.fetchone()[0]
     if count == 0:
-        return True
-    else:
         return False
+    else:
+        return True
 
 
 def insert_data(con, year, month, budget):
