@@ -11,7 +11,7 @@ def show_budget():
         Year <input type="text" name="year">
         Month <input type="text" name="month">
         Budget <input type="text" name="budget">
-        <input type="submit" value="Create">
+        <input name="create" type="submit" value="Create">
     </form>
     '''
 
@@ -23,10 +23,23 @@ def create_budget():
     budget = request.form['budget']
     with sqlite3.connect("budget.db") as con:
         c = con.cursor()
-        c.execute(f"INSERT INTO budget VALUES ({year},{month}, {budget})")
+        c.execute(f"select count(*) from budget  where year = '{year}' and month='{month}'")
+        count = c.fetchone()[0]
+        if count == 0:
+            c.execute(f"INSERT INTO budget VALUES ({year},{month}, {budget})")
+        else:
+            c.execute(f"UPDATE budget SET BUDGET = '{budget}' WHERE year = '{year}' and month='{month}'")
         con.commit()
-    return '''SUCCESS'''
+    return '''
+    <form method="POST" action="/budget">
+        Year <input type="text" name="year">
+        Month <input type="text" name="month">
+        Budget <input type="text" name="budget">
+        <input name="create" type="submit" value="Create">
+    </form>
+    SUCCESS!!
+    '''
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='10.1.70.41', debug=True)
