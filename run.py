@@ -23,9 +23,9 @@ def create_budget():
     budget = request.form['budget']
     with sqlite3.connect("budget.db") as con:
         if check_data_exist(con, year, month):
-            insert_data(con, year, month, budget)
-        else:
             update_data(con, year, month, budget)
+        else:
+            insert_data(con, year, month, budget)
 
     return '''
     <form method="POST" action="/budget">
