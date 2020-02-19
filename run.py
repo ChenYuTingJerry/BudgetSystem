@@ -37,7 +37,7 @@ def create_budget():
         Budget <input type="text" name="budget">
         <input name="create" type="submit" value="Create">
     </form>
-    SUCCESS!!
+    SUCCESIS!!!
     '''
 
 
