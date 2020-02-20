@@ -2,48 +2,82 @@ import os, unittest
 from selenium import webdriver
 
 
-class TestBudgetSystem(unittest.TestCase):
-    def setUp(self):
-        self._year, self._month, self._budget, self._create = None, None, None, None
+class Selenium():
+    def __init__(self):
         self.browser = webdriver.Chrome(
             executable_path=os.path.join(os.path.dirname(
                 os.path.abspath(__file__)), "..", "chromedriver.exe"))
-        self.addCleanup(self.browser.quit)
+
+
+class Budget(Selenium):
+    def __init__(self):
+        super(Budget, self).__init__()
+        self.year = self.browser.find_element_by_name("year")
+        self.month = self.browser.find_element_by_name("month")
+        self.budget = self.browser.find_element_by_name("budget")
+        self.create = self.browser.find_element_by_name("create")
+        self.result = self.browser.find_element_by_tag_name('body')
+
+    def create_budget(self, year, month, budget):
+        self.budget.year.send_keys(year)
+        self.budget.month.send_keys(month)
+        self.budget.budget.send_keys(budget)
+        self.budget.create.click()
+
+
+class BudgetQuery(Selenium):
+    def __init__(self):
+        super(BudgetQuery, self).__init__()
+        self.start = self.browser.find_element_by_name("start")
+        self.end = self.browser.find_element_by_name("end")
+        self.query = self.browser.find_element_by_name("query")
+        self.result = self.browser.find_element_by_name("result").text
+
+
+class TestBudgetSystem(unittest.TestCase):
+    def setUp(self):
+        self.budget = Budget()
+        self.budget_query = BudgetQuery()
+        self.addCleanup(self.budget.browser.quit)
 
     def tearDown(self):
         pass
 
-    @property
-    def year(self):
-        if not self._year:
-            self._year = self.browser.find_element_by_name("year")
-        return self._year
-
-    @property
-    def month(self):
-        if not self._month:
-            self._month = self.browser.find_element_by_name("month")
-        return self._month
-
-    @property
-    def budget(self):
-        if not self._budget:
-            self._budget = self.browser.find_element_by_name("budget")
-        return self._budget
-
-    @property
-    def create(self):
-        if not self._create:
-            self._create = self.browser.find_element_by_name("create")
-        return self._create
-
     def test_create_budget(self):
-        self.browser.get("http://10.1.70.41:5000/budget")
-        self.year.send_keys("2020")
-        self.month.send_keys("02")
-        self.budget.send_keys("10000")
-        self.create.click()
-        self.assertIn("SUCCESS!!", self.browser.find_element_by_tag_name('body').text)
+        self.budget.browser.get("http://10.1.70.41:5000/budget")
+        self.budget.create_budget("2020", "02", "10000")
+        self.assertIn("SUCCESS!!", self.budget.result)
+
+    def test_query_budget_1m_w_bgt(self):
+        self.budget.delete_budget()
+        self.budget.browser.get("http://10.1.70.41:5000/budget")
+        self.budget.create_budget("2020", "01", "310")
+        self.budget_query.browser.get("http://10.1.70.41:5000/budget/query")
+        self.budget_query.query_budget("20200101", "20200131")
+        self.assertEqual(310, self.budget_query.result)
+
+    def test_query_budget_1d_w_bgt(self):
+        self.budget.delete_budget()
+        self.budget.browser.get("http://10.1.70.41:5000/budget")
+        self.budget.create_budget("2020", "01", "310")
+        self.budget_query.browser.get("http://10.1.70.41:5000/budget/query")
+        self.budget_query.query_budget("20200101", "20200101")
+        self.assertEqual(10, self.budget_query.result)
+
+    def test_query_budget_10d_w_bgt(self):
+        self.budget.delete_budget()
+        self.budget.browser.get("http://10.1.70.41:5000/budget")
+        self.budget.create_budget("2020", "01", "310")
+        self.budget_query.browser.get("http://10.1.70.41:5000/budget/query")
+        self.budget_query.query_budget("20200101", "20200110")
+        self.assertEqual(100, self.budget_query.result)
+
+    def test_query_budget_1m_wo_bgt(self):
+        self.budget.delete_budget()
+        self.budget_query.browser.get("http://10.1.70.41:5000/budget/query")
+        self.budget_query.query_budget("20200201", "20200229")
+        self.assertEqual(0, self.budget_query.result)
+
 
 
 if __name__ == '__main__':
