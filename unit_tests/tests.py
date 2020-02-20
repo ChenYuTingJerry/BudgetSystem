@@ -1,7 +1,12 @@
 import unittest
+from datetime import datetime, date
+
 import run
 from mock import MagicMock
 from testfixtures import Replacer
+
+from model.budget_manager import BudgetManager
+from repo.budget_repo import BudgetRepo
 
 
 class TestCase(unittest.TestCase):
@@ -59,6 +64,19 @@ class TestCase(unittest.TestCase):
         self.assertEqual(result.data, expeced)
 
         mock_update_data.assert_called()
+
+
+class BudgetManagerTestCase(TestCase):
+    def test_query_budget_by_start_end_date(self):
+        repo = BudgetRepo()
+        expected = 310
+        repo.get_all = MagicMock(return_value=[(2020, 1, 310), (2020, 2, 0)])
+        manager = BudgetManager()
+        start_date = date.fromisoformat('2020-01-01')
+        end_date = date.fromisoformat('2020-01-31')
+        result = manager.calculate_amount_by_start_end_date(start_date, end_date)
+
+        self.assertEqual(result, expected)
 
 
 if __name__ == '__main__':
