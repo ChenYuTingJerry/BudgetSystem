@@ -24,6 +24,9 @@ class Budget(Selenium):
         self.budget.budget.send_keys(budget)
         self.budget.create.click()
 
+    def delete_budget(self):
+        pass
+
 
 class BudgetQuery(Selenium):
     def __init__(self):
