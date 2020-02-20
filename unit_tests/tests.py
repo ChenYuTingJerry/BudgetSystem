@@ -67,10 +67,11 @@ class TestCase(unittest.TestCase):
 
 
 class BudgetManagerTestCase(TestCase):
-    def test_query_budget_by_start_end_date(self):
-        repo = BudgetRepo()
+    def test_query_budget_with_full_month(self):
         expected = 310
-        repo.get_all = MagicMock(return_value=[(2020, 1, 310), (2020, 2, 0)])
+        mock_get_all = MagicMock()
+        mock_get_all.return_value = [(2020, 1, 310), (2020, 2, 31)]
+        self.replacer.replace("repo.budget_repo.BudgetRepo.get_all", mock_get_all)
         manager = BudgetManager()
         start_date = date.fromisoformat('2020-01-01')
         end_date = date.fromisoformat('2020-01-31')
@@ -78,6 +79,29 @@ class BudgetManagerTestCase(TestCase):
 
         self.assertEqual(result, expected)
 
+    def test_query_budget_with_two_month(self):
+        expected = 341
+        mock_get_all = MagicMock()
+        mock_get_all.return_value = [(2020, 1, 310), (2020, 2, 31)]
+        self.replacer.replace("repo.budget_repo.BudgetRepo.get_all", mock_get_all)
+        manager = BudgetManager()
+        start_date = date.fromisoformat('2020-01-01')
+        end_date = date.fromisoformat('2020-02-29')
+        result = manager.calculate_amount_by_start_end_date(start_date, end_date)
+
+        self.assertEqual(result, expected)
+
+    def test_query_budget_with_days(self):
+        expected = 10
+        mock_get_all = MagicMock()
+        mock_get_all.return_value = [(2020, 1, 310), (2020, 2, 31)]
+        self.replacer.replace("repo.budget_repo.BudgetRepo.get_all", mock_get_all)
+        manager = BudgetManager()
+        start_date = date.fromisoformat('2020-01-01')
+        end_date = date.fromisoformat('2020-01-01')
+        result = manager.calculate_amount_by_start_end_date(start_date, end_date)
+
+        self.assertEqual(result, expected)
 
 if __name__ == '__main__':
     unittest.main()
